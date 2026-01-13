@@ -1,7 +1,8 @@
 # HomeCooking Backend Makefile
 
 .PHONY: build run test test-coverage clean clean-coverage \
-	test-repository test-service test-handler test-middleware
+	test-repository test-service test-handler test-middleware \
+	db-migrate db-reset db-shell
 
 # Build
 build:
@@ -9,7 +10,7 @@ build:
 
 # Run
 run:
-	go run ./cmd/server
+	./run.sh
 
 # Test targets
 test:
@@ -56,3 +57,20 @@ test-detailed:
 	@echo ""
 	@echo "=== Middleware Tests ==="
 	go test -v -coverprofile=middleware_coverage.out ./internal/middleware/...
+
+# Database commands
+db-migrate:
+	@echo "Running PostgreSQL migrations..."
+	docker exec -i homecooking-db psql -U postgres -d homecooking < internal/db/migrations/001_init.up.sql
+	docker exec -i homecooking-db psql -U postgres -d homecooking < internal/db/migrations/002_add_recipe_variations.up.sql
+	@echo "Migrations complete!"
+
+db-reset:
+	@echo "Resetting database..."
+	docker exec homecooking-db psql -U postgres -c "DROP DATABASE IF EXISTS homecooking;"
+	docker exec homecooking-db psql -U postgres -c "CREATE DATABASE homecooking;"
+	@echo "Database reset complete. Run 'make db-migrate' to apply migrations."
+
+db-shell:
+	@echo "Connecting to PostgreSQL database..."
+	docker exec -it homecooking-db psql -U postgres -d homecooking
