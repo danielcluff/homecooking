@@ -1,17 +1,14 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
-import tailwindcss from '@tailwindcss/vite';
-import typography from '@tailwindcss/typography';
+import { defineConfig } from "astro/config";
+import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  integrations: [
-    tailwindcss({
-      plugins: [typography()],
-    }),
-  ],
-  output: 'static',
-  server: {
-    port: 3001,
-  },
+    server: {
+        port: 3001,
+    },
+
+    vite: {
+        plugins: [tailwindcss()],
+    },
 });
