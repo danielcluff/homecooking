@@ -1,0 +1,144 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const { user } = Astro.locals;
+if (!user) {
+	return Astro.redirect('/login');
+}
+---
+
+<AdminLayout title="AI Settings">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<div class="md:flex md:items-center md:justify-between">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900">AI Settings</h1>
+				<p class="mt-1 text-sm text-gray-500">Configure AI features for recipe extraction and enhancement</p>
+			</div>
+		</div>
+
+		<div class="mt-8">
+			<div id="ai-status" class="mb-6">
+				<div class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+					<div class="flex">
+						<div class="flex-shrink-0">
+							<svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+							</svg>
+						</div>
+						<div class="ml-3">
+							<h3 class="text-sm font-medium text-yellow-800">Checking AI status...</h3>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="ai-config" class="hidden">
+				<div class="bg-white shadow rounded-lg">
+					<div class="px-4 py-5 sm:p-6">
+						<h3 class="text-lg leading-6 font-medium text-gray-900">AI Configuration</h3>
+						<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
+							<div class="sm:col-span-1">
+								<dt class="text-sm font-medium text-gray-500">Status</dt>
+								<dd id="config-enabled" class="mt-1 text-sm text-gray-900"></dd>
+							</div>
+							<div class="sm:col-span-1">
+								<dt class="text-sm font-medium text-gray-500">Provider</dt>
+								<dd id="config-provider" class="mt-1 text-sm text-gray-900"></dd>
+							</div>
+							<div class="sm:col-span-2">
+								<dt class="text-sm font-medium text-gray-500">Model</dt>
+								<dd id="config-model" class="mt-1 text-sm text-gray-900"></dd>
+							</div>
+						</dl>
+					</div>
+				</div>
+
+				<div class="mt-6 bg-white shadow rounded-lg">
+					<div class="px-4 py-5 sm:p-6">
+						<h3 class="text-lg leading-6 font-medium text-gray-900">Available Features</h3>
+						<ul class="mt-4 divide-y divide-gray-200">
+							<li class="py-4 flex items-center justify-between">
+								<div>
+									<h4 class="text-sm font-medium text-gray-900">Extract Recipe from Image</h4>
+									<p class="mt-1 text-sm text-gray-500">Use AI to extract recipe details from uploaded images</p>
+								</div>
+								<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Available</span>
+							</li>
+							<li class="py-4 flex items-center justify-between">
+								<div>
+									<h4 class="text-sm font-medium text-gray-900">Enhance Recipe</h4>
+									<p class="mt-1 text-sm text-gray-500">Use AI to improve recipe descriptions and formatting</p>
+								</div>
+								<span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Available</span>
+							</li>
+						</ul>
+					</div>
+				</div>
+			</div>
+
+			<div id="ai-not-enabled" class="hidden">
+				<div class="bg-red-50 border border-red-200 rounded-md p-4">
+					<div class="flex">
+						<div class="flex-shrink-0">
+							<svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+								<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+							</svg>
+						</div>
+						<div class="ml-3">
+							<h3 class="text-sm font-medium text-red-800">AI Features Not Enabled</h3>
+							<div class="mt-2 text-sm text-red-700">
+								<p>To enable AI features, set the following environment variables:</p>
+								<ul class="mt-1 list-disc list-inside">
+									<li><code>AI_ENABLED=true</code></li>
+									<li><code>AI_PROVIDER</code> (openai, anthropic, or ollama)</li>
+									<li><code>AI_API_KEY</code> (for OpenAI or Anthropic)</li>
+									<li><code>AI_MODEL</code> (model name to use)</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		async function checkAIStatus() {
+			try {
+				const response = await fetch('http://localhost:8080/api/v1/ai/status');
+				const data = await response.json();
+
+				const statusEl = document.getElementById('ai-status');
+				const configEl = document.getElementById('ai-config');
+				const notEnabledEl = document.getElementById('ai-not-enabled');
+
+				if (data.enabled) {
+					statusEl.classList.add('hidden');
+					configEl.classList.remove('hidden');
+
+					await loadAIConfig();
+				} else {
+					statusEl.classList.add('hidden');
+					notEnabledEl.classList.remove('hidden');
+				}
+			} catch (error) {
+				console.error('Error checking AI status:', error);
+			}
+		}
+
+		async function loadAIConfig() {
+			try {
+				const response = await fetch('http://localhost:8080/api/v1/ai/config');
+				const config = await response.json();
+
+				document.getElementById('config-enabled').textContent = config.enabled ? 'Enabled' : 'Disabled';
+				document.getElementById('config-provider').textContent = config.provider || 'Not configured';
+				document.getElementById('config-model').textContent = config.model || 'Not configured';
+			} catch (error) {
+				console.error('Error loading AI config:', error);
+			}
+		}
+
+		checkAIStatus();
+	</script>
+</AdminLayout>

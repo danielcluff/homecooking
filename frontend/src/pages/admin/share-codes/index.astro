@@ -1,0 +1,104 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { apiFetch } from '../../../lib/api';
+
+const { user } = Astro.locals;
+if (!user) {
+	return Astro.redirect('/login');
+}
+
+const shareCodes = await apiFetch('/api/v1/share-codes');
+---
+
+<AdminLayout title="Share Codes">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+		<div class="flex justify-between items-center mb-6">
+			<div>
+				<h1 class="text-2xl font-bold text-gray-900">Share Codes</h1>
+				<p class="mt-1 text-sm text-gray-500">Generate share codes to let others access your recipes</p>
+			</div>
+			<a href="/admin/recipes" class="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700">
+				View Recipes
+			</a>
+		</div>
+
+		{shareCodes && shareCodes.length > 0 ? (
+			<div class="bg-white shadow rounded-lg overflow-hidden">
+				<ul class="divide-y divide-gray-200">
+					{shareCodes.map((code) => (
+						<li class="px-4 py-4 sm:px-6">
+							<div class="flex items-center justify-between">
+								<div>
+									<p class="text-sm font-medium text-orange-600 truncate">{code.code}</p>
+									<p class="mt-1 flex items-center text-sm text-gray-500">
+										<span>Recipe ID: {code.recipe_id}</span>
+										{code.expires_at ? (
+											<span class="ml-4">Expires: {new Date(code.expires_at).toLocaleDateString()}</span>
+										) : (
+											<span class="ml-4">Never expires</span>
+										)}
+										{code.max_uses ? (
+											<span class="ml-4">Uses: {code.use_count} / {code.max_uses}</span>
+										) : (
+											<span class="ml-4">Uses: {code.use_count}</span>
+										)}
+									</p>
+								</div>
+								<div class="flex items-center space-x-2">
+									<a
+										href={`/share/${code.code}`}
+										target="_blank"
+										class="text-orange-600 hover:text-orange-900 text-sm font-medium"
+									>
+										View Link
+									</a>
+									<button
+										data-id={code.id}
+										data-action="delete-share-code"
+										class="text-red-600 hover:text-red-900 text-sm font-medium"
+									>
+										Delete
+									</button>
+								</div>
+							</div>
+						</li>
+					))}
+				</ul>
+			</div>
+		) : (
+			<div class="text-center py-12">
+				<p class="text-gray-500">No share codes found</p>
+				<a href="/admin/recipes" class="mt-4 text-orange-600 hover:text-orange-900 font-medium">
+					Create share codes from your recipes
+				</a>
+			</div>
+		)}
+	</div>
+
+	<script>
+		document.querySelectorAll('[data-action="delete-share-code"]').forEach((btn) => {
+			btn.addEventListener('click', async (e) => {
+				e.preventDefault();
+				if (!confirm('Are you sure you want to delete this share code?')) return;
+
+				const id = e.target.getAttribute('data-id');
+				const token = localStorage.getItem('token');
+				try {
+					const res = await fetch(`/api/v1/share-codes/${id}`, {
+						method: 'DELETE',
+						headers: {
+							'Authorization': `Bearer ${token}`
+						}
+					});
+					if (res.ok) {
+						window.location.reload();
+					} else {
+						alert('Failed to delete share code');
+					}
+				} catch (err) {
+					alert('Error deleting share code');
+				}
+			});
+		});
+	</script>
+</AdminLayout>

@@ -1,0 +1,131 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Register">
+	<div class="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 flex items-center justify-center px-4">
+		<div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+			<div class="text-center mb-8">
+				<h1 class="text-3xl font-bold text-orange-600 mb-2">🍳 HomeCooking</h1>
+				<p class="text-gray-600">Create your account</p>
+			</div>
+
+			<div id="error" class="hidden mb-4">
+				<div class="bg-red-50 border border-red-200 rounded-md p-4">
+					<p class="text-red-800" id="error-message"></p>
+				</div>
+			</div>
+
+			<form id="register-form" class="space-y-6">
+				<div>
+					<label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+					<input
+						id="email"
+						name="email"
+						type="email"
+						required
+						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+						placeholder="your@email.com"
+					/>
+				</div>
+
+				<div>
+					<label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+					<input
+						id="password"
+						name="password"
+						type="password"
+						required
+						minlength="8"
+						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+						placeholder="••••••••"
+					/>
+				</div>
+
+				<div>
+					<label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+					<input
+						id="confirmPassword"
+						name="confirmPassword"
+						type="password"
+						required
+						minlength="8"
+						class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+						placeholder="••••••••"
+					/>
+				</div>
+
+				<button
+					type="submit"
+					id="submit-btn"
+					class="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+				>
+					Create Account
+				</button>
+			</form>
+
+			<p class="mt-6 text-center text-gray-600">
+				Already have an account?
+				<a href="/login" class="text-orange-600 hover:text-orange-700 font-medium">Sign in</a>
+			</p>
+
+			<p class="mt-4 text-center">
+				<a href="/" class="text-gray-500 hover:text-gray-700 text-sm">← Back to home</a>
+			</p>
+		</div>
+	</div>
+
+	<script>
+		document.getElementById('register-form').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const submitBtn = document.getElementById('submit-btn');
+			const errorDiv = document.getElementById('error');
+			const errorMessage = document.getElementById('error-message');
+
+			const formData = new FormData(e.target);
+			const password = formData.get('password');
+			const confirmPassword = formData.get('confirmPassword');
+
+			if (password !== confirmPassword) {
+				errorMessage.textContent = 'Passwords do not match';
+				errorDiv.classList.remove('hidden');
+				return;
+			}
+
+			submitBtn.disabled = true;
+			submitBtn.textContent = 'Creating account...';
+			errorDiv.classList.add('hidden');
+
+			const data = {
+				email: formData.get('email'),
+				password: password,
+			};
+
+			try {
+				const response = await fetch('http://localhost:8080/api/v1/auth/register', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify(data),
+				});
+
+				if (!response.ok) {
+					const error = await response.json();
+					throw new Error(error.message || 'Registration failed');
+				}
+
+				const result = await response.json();
+				localStorage.setItem('accessToken', result.access_token);
+				localStorage.setItem('refreshToken', result.refresh_token);
+
+				window.location.href = '/admin';
+			} catch (error: any) {
+				errorMessage.textContent = error.message;
+				errorDiv.classList.remove('hidden');
+				submitBtn.disabled = false;
+				submitBtn.textContent = 'Create Account';
+			}
+		});
+	</script>
+</Layout>

@@ -1,0 +1,131 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Categories">
+	<div class="sm:flex sm:items-center">
+		<div class="sm:flex-auto">
+			<h1 class="text-2xl font-semibold leading-6 text-gray-900">Categories</h1>
+			<p class="mt-2 text-sm text-gray-700">
+				Organize your recipes by category.
+			</p>
+		</div>
+		<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+			<a
+				href="/admin/categories/new"
+				class="block rounded-md bg-orange-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+			>
+				Create Category
+			</a>
+		</div>
+	</div>
+
+	<div id="loading" class="mt-8 text-center text-gray-500 py-12">
+		Loading categories...
+	</div>
+
+	<div id="error" class="mt-8 hidden">
+		<div class="bg-red-50 border border-red-200 rounded-md p-4">
+			<p class="text-red-800" id="error-message"></p>
+		</div>
+	</div>
+
+	<div id="categories-container" class="mt-8 hidden">
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-300">
+				<thead>
+					<tr>
+						<th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Icon</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Name</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Order</th>
+						<th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+							<span class="sr-only">Actions</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody id="categories-list" class="divide-y divide-gray-200">
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div id="empty-state" class="mt-8 hidden">
+		<p class="text-center text-gray-500 py-12">
+			No categories yet. <a href="/admin/categories/new" class="text-orange-600 hover:text-orange-700">Create your first category!</a>
+		</p>
+	</div>
+</AdminLayout>
+
+<script>
+	async function loadCategories() {
+		try {
+			const response = await fetch('http://localhost:8080/api/v1/categories');
+			if (!response.ok) {
+				throw new Error('Failed to load categories');
+			}
+			const categories = await response.json();
+
+			document.getElementById('loading').classList.add('hidden');
+
+			if (categories.length === 0) {
+				document.getElementById('empty-state').classList.remove('hidden');
+				return;
+			}
+
+			const categoriesList = document.getElementById('categories-list');
+			categoriesList.innerHTML = categories.sort((a: any, b: any) => (a.order_index || 0) - (b.order_index || 0)).map((category: any) => `
+				<tr>
+					<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-gray-900">
+						${category.icon || '📁'}
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900">
+						${category.name}
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+						${category.description || '-'}
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+						${category.order_index || 0}
+					</td>
+					<td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+						<a href="/admin/categories/edit?id=${category.id}" class="text-orange-600 hover:text-orange-900 mr-3">Edit</a>
+						<button onclick="deleteCategory(${category.id})" class="text-red-600 hover:text-red-900">Delete</button>
+					</td>
+				</tr>
+			`).join('');
+
+			document.getElementById('categories-container').classList.remove('hidden');
+		} catch (error: any) {
+			document.getElementById('loading').classList.add('hidden');
+			document.getElementById('error-message').textContent = error.message;
+			document.getElementById('error').classList.remove('hidden');
+		}
+	}
+
+	async function deleteCategory(id: number) {
+		if (!confirm('Are you sure you want to delete this category?')) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`http://localhost:8080/api/v1/categories/${id}`, {
+				method: 'DELETE',
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to delete category');
+			}
+
+			loadCategories();
+		} catch (error: any) {
+			alert(error.message);
+		}
+	}
+
+	(window as any).deleteCategory = deleteCategory;
+	loadCategories();
+</script>

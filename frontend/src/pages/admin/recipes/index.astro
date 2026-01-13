@@ -1,0 +1,135 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Recipes">
+	<div class="sm:flex sm:items-center">
+		<div class="sm:flex-auto">
+			<h1 class="text-2xl font-semibold leading-6 text-gray-900">Recipes</h1>
+			<p class="mt-2 text-sm text-gray-700">
+				Manage all recipes in your collection.
+			</p>
+		</div>
+		<div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+			<a
+				href="/admin/recipes/new"
+				class="block rounded-md bg-orange-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-orange-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600"
+			>
+				Create Recipe
+			</a>
+		</div>
+	</div>
+
+	<div id="loading" class="mt-8 text-center text-gray-500 py-12">
+		Loading recipes...
+	</div>
+
+	<div id="error" class="mt-8 hidden">
+		<div class="bg-red-50 border border-red-200 rounded-md p-4">
+			<p class="text-red-800" id="error-message"></p>
+		</div>
+	</div>
+
+	<div id="recipes-container" class="mt-8 hidden">
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-300">
+				<thead>
+					<tr>
+						<th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">Title</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Category</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Updated</th>
+						<th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+							<span class="sr-only">Actions</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody id="recipes-list" class="divide-y divide-gray-200">
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div id="empty-state" class="mt-8 hidden">
+		<p class="text-center text-gray-500 py-12">
+			No recipes yet. <a href="/admin/recipes/new" class="text-orange-600 hover:text-orange-700">Create your first recipe!</a>
+		</p>
+	</div>
+</AdminLayout>
+
+<script>
+	async function loadRecipes() {
+		try {
+			const response = await fetch('http://localhost:8080/api/v1/recipes');
+			if (!response.ok) {
+				throw new Error('Failed to load recipes');
+			}
+			const data = await response.json();
+			const recipes = data.recipes || [];
+
+			document.getElementById('loading').classList.add('hidden');
+
+			if (recipes.length === 0) {
+				document.getElementById('empty-state').classList.remove('hidden');
+				return;
+			}
+
+			const recipesList = document.getElementById('recipes-list');
+			recipesList.innerHTML = recipes.map(recipe => `
+				<tr>
+					<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">
+						${recipe.title}
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+						${recipe.category_name || '-'}
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm">
+						<span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${recipe.is_published ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+							${recipe.is_published ? 'Published' : 'Draft'}
+						</span>
+					</td>
+					<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+						${new Date(recipe.updated_at).toLocaleDateString()}
+					</td>
+					<td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+						<a href="/recipes/view?id=${recipe.id}" class="text-orange-600 hover:text-orange-900 mr-3">View</a>
+						<a href="/admin/recipes/edit?id=${recipe.id}" class="text-orange-600 hover:text-orange-900 mr-3">Edit</a>
+						<button onclick="deleteRecipe(${recipe.id})" class="text-red-600 hover:text-red-900">Delete</button>
+					</td>
+				</tr>
+			`).join('');
+
+			document.getElementById('recipes-container').classList.remove('hidden');
+		} catch (error) {
+			document.getElementById('loading').classList.add('hidden');
+			document.getElementById('error-message').textContent = error.message;
+			document.getElementById('error').classList.remove('hidden');
+		}
+	}
+
+	async function deleteRecipe(id) {
+		if (!confirm('Are you sure you want to delete this recipe?')) {
+			return;
+		}
+
+		try {
+			const response = await fetch(`http://localhost:8080/api/v1/recipes/${id}`, {
+				method: 'DELETE',
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+				},
+			});
+
+			if (!response.ok) {
+				throw new Error('Failed to delete recipe');
+			}
+
+			loadRecipes();
+		} catch (error) {
+			alert(error.message);
+		}
+	}
+
+	(window as any).deleteRecipe = deleteRecipe;
+	loadRecipes();
+</script>

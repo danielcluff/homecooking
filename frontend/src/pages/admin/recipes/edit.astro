@@ -1,0 +1,364 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Edit Recipe">
+	<div class="max-w-3xl mx-auto">
+		<div class="md:flex md:items-center md:justify-between">
+			<div>
+				<h2 id="page-title" class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">Edit Recipe</h2>
+				<p id="page-subtitle" class="mt-1 text-sm text-gray-500">Update recipe details.</p>
+			</div>
+		</div>
+
+		<div id="loading" class="mt-8 text-center text-gray-500">
+			Loading recipe...
+		</div>
+
+		<div id="error" class="mt-8 hidden">
+			<div class="bg-red-50 border border-red-200 rounded-md p-4">
+				<p class="text-red-800" id="error-message"></p>
+			</div>
+		</div>
+
+		<form id="recipe-form" class="mt-8 space-y-6 hidden">
+			<!-- Create Variation Button (only in non-variation mode) -->
+			<div id="create-variation-container" class="mb-4 hidden">
+				<a id="create-variation-btn" href="#" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700">
+					✨ Create Variation
+				</a>
+				<p class="mt-1 text-xs text-gray-500">Create your own version of this recipe with small changes.</p>
+			</div>
+
+			<div class="bg-white shadow sm:rounded-lg">
+				<div class="px-4 py-5 sm:p-6">
+					<!-- Base Recipe Info (read-only for variations) -->
+					<div id="base-recipe-info" class="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-md hidden">
+						<h3 class="font-medium text-orange-900 mb-2">Base Recipe</h3>
+						<div>
+							<label class="block text-sm font-medium text-gray-700">Title</label>
+							<p id="base-title" class="mt-1 text-sm text-gray-900 font-medium"></p>
+						</div>
+						<div class="mt-2">
+							<label class="block text-sm font-medium text-gray-700">Description</label>
+							<p id="base-description" class="mt-1 text-sm text-gray-700"></p>
+						</div>
+					</div>
+
+					<div class="md:grid md:grid-cols-2 md:gap-6">
+						<div id="title-field" class="col-span-2">
+							<label for="title" class="block text-sm font-medium text-gray-700">Title <span class="text-red-500">*</span></label>
+							<input
+								type="text"
+								name="title"
+								id="title"
+								required
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="Recipe title"
+							/>
+						</div>
+
+						<div id="description-field" class="col-span-2">
+							<label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+							<textarea
+								id="description"
+								name="description"
+								rows="2"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="Brief description"
+							/>
+						</div>
+
+						<div>
+							<label for="servings" class="block text-sm font-medium text-gray-700">Servings</label>
+							<input
+								type="number"
+								name="servings"
+								id="servings"
+								min="1"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="4"
+							/>
+						</div>
+
+						<div>
+							<label for="prep_time_minutes" class="block text-sm font-medium text-gray-700">Prep Time (min)</label>
+							<input
+								type="number"
+								name="prep_time_minutes"
+								id="prep_time_minutes"
+								min="0"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="10"
+							/>
+						</div>
+
+						<div>
+							<label for="cook_time_minutes" class="block text-sm font-medium text-gray-700">Cook Time (min)</label>
+							<input
+								type="number"
+								name="cook_time_minutes"
+								id="cook_time_minutes"
+								min="0"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="20"
+							/>
+						</div>
+
+						<div>
+							<label for="difficulty" class="block text-sm font-medium text-gray-700">Difficulty</label>
+							<select
+								id="difficulty"
+								name="difficulty"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+							>
+								<option value="">Not specified</option>
+								<option value="easy">Easy</option>
+								<option value="medium">Medium</option>
+								<option value="hard">Hard</option>
+							</select>
+						</div>
+
+						<div class="col-span-2">
+							<label for="markdown_content" class="block text-sm font-medium text-gray-700">Recipe Content (Markdown) <span class="text-red-500">*</span></label>
+							<textarea
+								id="markdown_content"
+								name="markdown_content"
+								rows="12"
+								required
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm font-mono text-sm"
+								placeholder="# Recipe Title
+
+## Ingredients
+
+- Ingredient 1
+- Ingredient 2
+
+## Instructions
+
+1. Step one
+2. Step two"
+							/>
+						</div>
+
+						<div id="notes-field" class="col-span-2 hidden">
+							<label for="notes" class="block text-sm font-medium text-gray-700">Variation Notes</label>
+							<textarea
+								id="notes"
+								name="notes"
+								rows="3"
+								class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm"
+								placeholder="Explain what makes this variation different from the original recipe..."
+							/>
+							<p class="mt-1 text-xs text-gray-500">These notes will be displayed prominently when viewing your variation.</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row sm:items-center sm:justify-between">
+					<div class="flex items-center">
+						<input
+							id="is_published"
+							name="is_published"
+							type="checkbox"
+							class="h-4 w-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500"
+						/>
+						<label id="publish-label" for="is_published" class="ml-2 block text-sm text-gray-900">Publish this recipe</label>
+					</div>
+					<button
+						type="button"
+						id="delete-btn"
+						class="inline-flex justify-center rounded-md border border-transparent bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+					>
+						Delete
+					</button>
+				</div>
+			</div>
+
+			<div class="flex items-center justify-end gap-x-6 pt-5">
+				<a id="cancel-link" href="/admin/recipes" class="text-sm font-medium text-gray-900 hover:text-orange-600">Cancel</a>
+				<button
+					type="submit"
+					id="save-btn"
+					class="inline-flex justify-center rounded-md border border-transparent bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
+				>
+					Update Recipe
+				</button>
+			</div>
+		</form>
+	</div>
+
+	<script>
+		const urlParams = new URLSearchParams(window.location.search);
+		const recipeId = urlParams.get('id');
+		const mode = urlParams.get('mode');
+		const variationId = urlParams.get('variation_id');
+
+		let isVariationMode = mode === 'variation';
+
+		async function loadRecipe() {
+			if (!recipeId) {
+				showError('Recipe ID not provided');
+				return;
+			}
+
+			try {
+				let recipe;
+				if (isVariationMode) {
+					const response = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}/variations/${variationId}`);
+					if (!response.ok) {
+						throw new Error('Failed to load variation');
+					}
+					recipe = await response.json();
+
+					const baseRecipeResponse = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}`);
+					const baseRecipe = await baseRecipeResponse.json();
+
+					setupVariationMode(baseRecipe, recipe);
+				} else {
+					const response = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}`);
+					if (!response.ok) {
+						throw new Error('Failed to load recipe');
+					}
+					recipe = await response.json();
+
+					setupRecipeMode(recipe);
+				}
+
+				document.getElementById('loading').classList.add('hidden');
+				document.getElementById('recipe-form').classList.remove('hidden');
+			} catch (error) {
+				showError(error.message);
+			}
+		}
+
+		function setupVariationMode(baseRecipe, variation) {
+			document.getElementById('page-title').textContent = 'Edit Variation';
+			document.getElementById('page-subtitle').textContent = 'Update your variation of this recipe.';
+			document.getElementById('save-btn').textContent = 'Update Variation';
+			document.getElementById('cancel-link').href = `/recipes/view?id=${recipeId}`;
+			document.getElementById('delete-btn').classList.add('hidden');
+
+			const baseInfo = document.getElementById('base-recipe-info');
+			baseInfo.classList.remove('hidden');
+			document.getElementById('base-title').textContent = baseRecipe.title;
+			document.getElementById('base-description').textContent = baseRecipe.description || 'No description';
+
+			document.getElementById('title-field').classList.add('hidden');
+			document.getElementById('description-field').classList.add('hidden');
+			document.getElementById('notes-field').classList.remove('hidden');
+
+			document.getElementById('servings').value = variation.servings || '';
+			document.getElementById('prep_time_minutes').value = variation.prep_time_minutes || '';
+			document.getElementById('cook_time_minutes').value = variation.cook_time_minutes || '';
+			document.getElementById('difficulty').value = variation.difficulty || '';
+			document.getElementById('markdown_content').value = variation.markdown_content || '';
+			document.getElementById('notes').value = variation.notes || '';
+			document.getElementById('is_published').checked = variation.is_published || false;
+			document.getElementById('publish-label').textContent = 'Publish this variation';
+		}
+
+		function setupRecipeMode(recipe) {
+			document.getElementById('title').value = recipe.title || '';
+			document.getElementById('description').value = recipe.description || '';
+			document.getElementById('servings').value = recipe.servings || '';
+			document.getElementById('prep_time_minutes').value = recipe.prep_time_minutes || '';
+			document.getElementById('cook_time_minutes').value = recipe.cook_time_minutes || '';
+			document.getElementById('difficulty').value = recipe.difficulty || '';
+			document.getElementById('markdown_content').value = recipe.markdown_content || '';
+			document.getElementById('is_published').checked = recipe.is_published || false;
+
+			const createVariationContainer = document.getElementById('create-variation-container');
+			const createVariationBtn = document.getElementById('create-variation-btn');
+			createVariationContainer.classList.remove('hidden');
+			createVariationBtn.href = `/admin/recipes/variations/new?id=${recipeId}`;
+		}
+
+		function showError(message) {
+			document.getElementById('loading').classList.add('hidden');
+			document.getElementById('error-message').textContent = message;
+			document.getElementById('error').classList.remove('hidden');
+		}
+
+		document.getElementById('recipe-form').addEventListener('submit', async (e) => {
+			e.preventDefault();
+			const formData = new FormData(e.target);
+
+			const data = {
+				servings: formData.get('servings') ? parseInt(formData.get('servings')) : null,
+				prep_time_minutes: formData.get('prep_time_minutes') ? parseInt(formData.get('prep_time_minutes')) : null,
+				cook_time_minutes: formData.get('cook_time_minutes') ? parseInt(formData.get('cook_time_minutes')) : null,
+				difficulty: formData.get('difficulty') || null,
+				markdown_content: formData.get('markdown_content'),
+				is_published: formData.get('is_published') === 'on',
+			};
+
+			if (isVariationMode) {
+				data.notes = formData.get('notes') || null;
+			} else {
+				data.title = formData.get('title');
+				data.description = formData.get('description') || null;
+			}
+
+			try {
+				let response;
+				if (isVariationMode) {
+					response = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}/variations/${variationId}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+						},
+						body: JSON.stringify(data),
+					});
+				} else {
+					response = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+						},
+						body: JSON.stringify(data),
+					});
+				}
+
+				if (!response.ok) {
+					throw new Error('Failed to save');
+				}
+
+				if (isVariationMode) {
+					window.location.href = `/recipes/view?id=${recipeId}`;
+				} else {
+					window.location.href = '/admin/recipes';
+				}
+			} catch (error) {
+				showError(error.message);
+			}
+		});
+
+		document.getElementById('delete-btn').addEventListener('click', async () => {
+			if (!confirm('Are you sure you want to delete this?')) {
+				return;
+			}
+
+			try {
+				const response = await fetch(`http://localhost:8080/api/v1/recipes/${recipeId}`, {
+					method: 'DELETE',
+					headers: {
+						'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+					},
+				});
+
+				if (!response.ok) {
+					throw new Error('Failed to delete');
+				}
+
+				window.location.href = '/admin/recipes';
+			} catch (error) {
+				showError(error.message);
+			}
+		});
+
+		loadRecipe();
+	</script>
+</AdminLayout>

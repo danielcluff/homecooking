@@ -1,0 +1,87 @@
+---
+interface Props {
+	title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="HomeCooking - Recipe storage web app" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<title>{title} - HomeCooking</title>
+	</head>
+	<body>
+		<nav class="bg-white shadow-sm border-b">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="flex justify-between h-16">
+					<div class="flex">
+						<div class="flex-shrink-0 flex items-center">
+							<a href="/admin" class="text-xl font-bold text-orange-600">🍳 HomeCooking</a>
+						</div>
+						<div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+							<a href="/admin" class="border-orange-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Dashboard
+							</a>
+							<a href="/admin/recipes" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Recipes
+							</a>
+							<a href="/admin/groups" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Groups
+							</a>
+							<a href="/admin/categories" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Categories
+							</a>
+							<a href="/admin/tags" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Tags
+							</a>
+							<a href="/admin/invites" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Invites
+							</a>
+							<a href="/admin/share-codes" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								Share Codes
+							</a>
+							<a href="/admin/ai" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+								AI Settings
+							</a>
+						</div>
+					</div>
+					<div class="flex items-center">
+						<a href="/" class="text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md text-sm font-medium">View Site</a>
+						<button id="signout-btn" class="bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-orange-700">Sign Out</button>
+					</div>
+				</div>
+			</div>
+		</nav>
+
+		<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+			<slot />
+		</main>
+
+		<footer class="bg-gray-50 border-t mt-auto">
+			<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+				<p class="text-center text-sm text-gray-500">
+					&copy; 2025 HomeCooking. All rights reserved.
+				</p>
+			</div>
+		</footer>
+	</body>
+
+	<script>
+		const token = localStorage.getItem('accessToken');
+		if (!token) {
+			window.location.href = '/login';
+		}
+
+		document.getElementById('signout-btn').addEventListener('click', () => {
+			localStorage.removeItem('accessToken');
+			localStorage.removeItem('refreshToken');
+			window.location.href = '/login';
+		});
+	</script>
+</html>

@@ -1,0 +1,106 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Recipes">
+	<div class="min-h-screen bg-gray-50">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+			<div class="text-center mb-12">
+				<h1 class="text-4xl font-bold text-gray-900 mb-4">Our Recipes</h1>
+				<p class="text-lg text-gray-600">Discover delicious recipes from our collection</p>
+			</div>
+
+			<div id="loading" class="text-center text-gray-500 py-12">
+				Loading recipes...
+			</div>
+
+			<div id="error" class="hidden">
+				<div class="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+					<p class="text-red-800" id="error-message"></p>
+				</div>
+			</div>
+
+			<div id="recipes-container" class="hidden">
+				<div id="recipes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				</div>
+			</div>
+
+			<div id="empty-state" class="hidden">
+				<div class="text-center py-12">
+					<div class="text-6xl mb-4">🍽️</div>
+					<h2 class="text-2xl font-semibold text-gray-900 mb-2">No recipes yet</h2>
+					<p class="text-gray-600 mb-6">Check back soon for delicious recipes!</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		async function loadRecipes() {
+			try {
+				const response = await fetch('http://localhost:8080/api/v1/recipes');
+				if (!response.ok) {
+					throw new Error('Failed to load recipes');
+				}
+				const data = await response.json();
+				const recipes = data.recipes.filter((r: any) => r.is_published);
+
+				document.getElementById('loading').classList.add('hidden');
+
+				if (recipes.length === 0) {
+					document.getElementById('empty-state').classList.remove('hidden');
+					return;
+				}
+
+				const recipesGrid = document.getElementById('recipes-grid');
+				recipesGrid.innerHTML = recipes.map((recipe: any) => `
+					<div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+						onclick="window.location.href='/recipes/view?id=${recipe.id}'">
+						${recipe.featured_image_path ? `
+							<div class="h-48 bg-gray-200 bg-cover bg-center" style="background-image: url('${recipe.featured_image_path}')"></div>
+						` : `
+							<div class="h-48 bg-gradient-to-br from-orange-100 to-yellow-100 flex items-center justify-center">
+								<span class="text-6xl">🍳</span>
+							</div>
+						`}
+						<div class="p-6">
+							<div class="flex items-center gap-2 mb-2">
+								${recipe.category_name ? `
+									<span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-orange-100 text-orange-800">
+										${recipe.category_name}
+									</span>
+								` : ''}
+							</div>
+							<h3 class="text-xl font-semibold text-gray-900 mb-2">${recipe.title}</h3>
+							<p class="text-gray-600 text-sm mb-4 line-clamp-2">${recipe.description || 'No description available'}</p>
+							<div class="flex items-center justify-between text-sm text-gray-500">
+								<div class="flex items-center gap-4">
+									${recipe.servings ? `
+										<span class="flex items-center gap-1">
+											<span>👥</span>
+											${recipe.servings}
+										</span>
+									` : ''}
+									${recipe.prep_time_minutes ? `
+										<span class="flex items-center gap-1">
+											<span>⏱️</span>
+											${recipe.prep_time_minutes}m
+										</span>
+									` : ''}
+								</div>
+							</div>
+						</div>
+					</div>
+				`).join('');
+
+				document.getElementById('recipes-container').classList.remove('hidden');
+			} catch (error: any) {
+				document.getElementById('loading').classList.add('hidden');
+				document.getElementById('error-message').textContent = error.message;
+				document.getElementById('error').classList.remove('hidden');
+			}
+		}
+
+		loadRecipes();
+	</script>
+</Layout>

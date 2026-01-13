@@ -1,0 +1,207 @@
+package repository
+
+import (
+	"context"
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/homecooking/backend/internal/db/sqlc"
+	"github.com/homecooking/backend/internal/models"
+)
+
+type RecipeGroupRepository struct {
+	db *sql.DB
+	q  *sqlc.Queries
+}
+
+func NewRecipeGroupRepository(db *sql.DB, q *sqlc.Queries) *RecipeGroupRepository {
+	return &RecipeGroupRepository{
+		db: db,
+		q:  q,
+	}
+}
+
+func (r *RecipeGroupRepository) Create(group *models.RecipeGroup) (*models.RecipeGroup, error) {
+	ctx := context.Background()
+	result, err := r.q.CreateRecipeGroup(ctx, sqlc.CreateRecipeGroupParams{
+		Name:        group.Name,
+		Slug:        group.Slug,
+		Description: sqlNullString(group.Description),
+		Icon:        sqlNullString(group.Icon),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return sqlcToModelGroup(result), nil
+}
+
+func (r *RecipeGroupRepository) GetByID(id string) (*models.RecipeGroup, error) {
+	ctx := context.Background()
+	result, err := r.q.GetRecipeGroupByID(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+	return sqlcToModelGroup(result), nil
+}
+
+func (r *RecipeGroupRepository) GetBySlug(slug string) (*models.RecipeGroup, error) {
+	ctx := context.Background()
+	result, err := r.q.GetRecipeGroupBySlug(ctx, slug)
+	if err != nil {
+		return nil, err
+	}
+	return sqlcToModelGroup(result), nil
+}
+
+func (r *RecipeGroupRepository) List() ([]*models.RecipeGroup, error) {
+	ctx := context.Background()
+	results, err := r.q.ListRecipeGroups(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make([]*models.RecipeGroup, len(results))
+	for i, result := range results {
+		groups[i] = sqlcToModelGroup(result)
+	}
+	return groups, nil
+}
+
+func (r *RecipeGroupRepository) Update(id string, group *models.RecipeGroup) (*models.RecipeGroup, error) {
+	ctx := context.Background()
+	result, err := r.q.UpdateRecipeGroup(ctx, sqlc.UpdateRecipeGroupParams{
+		ID:          uuid.MustParse(id),
+		Name:        sqlNullString(group.Name),
+		Slug:        sqlNullString(group.Slug),
+		Description: sqlNullString(group.Description),
+		Icon:        sqlNullString(group.Icon),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return sqlcToModelGroup(result), nil
+}
+
+func (r *RecipeGroupRepository) Delete(id string) error {
+	ctx := context.Background()
+	return r.q.DeleteRecipeGroup(ctx, uuid.MustParse(id))
+}
+
+func (r *RecipeGroupRepository) AddRecipeToGroup(groupID string, recipeID string, order int) error {
+	ctx := context.Background()
+	return r.q.AddRecipeToGroup(ctx, sqlc.AddRecipeToGroupParams{
+		GroupID:    uuid.MustParse(groupID),
+		RecipeID:   uuid.MustParse(recipeID),
+		OrderIndex: int32(order),
+	})
+}
+
+func (r *RecipeGroupRepository) RemoveRecipeFromGroup(groupID string, recipeID string) error {
+	ctx := context.Background()
+	return r.q.RemoveRecipeFromGroup(ctx, sqlc.RemoveRecipeFromGroupParams{
+		GroupID:  uuid.MustParse(groupID),
+		RecipeID: uuid.MustParse(recipeID),
+	})
+}
+
+func (r *RecipeGroupRepository) GetRecipesInGroup(groupID string) ([]*models.Recipe, error) {
+	ctx := context.Background()
+	dbRecipes, err := r.q.GetRecipesInGroup(ctx, uuid.MustParse(groupID))
+	if err != nil {
+		return nil, err
+	}
+
+	recipes := make([]*models.Recipe, len(dbRecipes))
+	for i, dbRecipe := range dbRecipes {
+		recipes[i] = sqlcToModelRecipe(dbRecipe)
+	}
+	return recipes, nil
+}
+
+func (r *RecipeGroupRepository) GetGroupWithRecipes(id string) (*models.RecipeGroupWithRecipes, error) {
+	ctx := context.Background()
+	dbGroup, err := r.q.GetRecipeGroupWithRecipes(ctx, uuid.MustParse(id))
+	if err != nil {
+		return nil, err
+	}
+
+	recipes := make([]*models.Recipe, len(dbGroup.Recipes))
+	for i, dbRecipe := range dbGroup.Recipes {
+		recipes[i] = sqlcToModelRecipe(dbRecipe)
+	}
+
+	return &models.RecipeGroupWithRecipes{
+		RecipeGroup: sqlcToModelGroup(dbGroup),
+		Recipes:     recipes,
+	}, nil
+}
+
+func (r *RecipeGroupRepository) GetGroupsForRecipe(recipeID string) ([]*models.RecipeGroup, error) {
+	ctx := context.Background()
+	dbGroups, err := r.q.GetGroupsForRecipe(ctx, uuid.MustParse(recipeID))
+	if err != nil {
+		return nil, err
+	}
+
+	groups := make([]*models.RecipeGroup, len(dbGroups))
+	for i, dbGroup := range dbGroups {
+		groups[i] = sqlcToModelGroup(dbGroup)
+	}
+	return groups, nil
+}
+
+func sqlcToModelGroup(dbGroup sqlc.RecipeGroup) *models.RecipeGroup {
+	return &models.RecipeGroup{
+		ID:          dbGroup.ID,
+		Name:        dbGroup.Name,
+		Slug:        dbGroup.Slug,
+		Description: nullStringToPtr(dbGroup.Description),
+		Icon:        nullStringToPtr(dbGroup.Icon),
+		CreatedAt:   dbGroup.CreatedAt.Time,
+	}
+}
+
+func sqlcToModelRecipe(dbRecipe sqlc.GetRecipesInGroupRow) *models.Recipe {
+	authorID := uuid.NullUUIDToPtr(dbRecipe.AuthorID)
+	categoryID := uuid.NullUUIDToPtr(dbRecipe.CategoryID)
+
+	prepTime := sql.NullInt32ToPtr(dbRecipe.PrepTimeMinutes)
+	cookTime := sql.NullInt32ToPtr(dbRecipe.CookTimeMinutes)
+	servings := sql.NullInt32ToPtr(dbRecipe.Servings)
+
+	publishedAt := sql.NullTimeToTimePtr(dbRecipe.PublishedAt)
+
+	description := sql.NullStringToPtr(dbRecipe.Description)
+	difficulty := sql.NullStringToPtr(dbRecipe.Difficulty)
+	featuredImage := sql.NullStringToPtr(dbRecipe.FeaturedImagePath)
+
+	authorIDPtr := nullUUIDToPtr(authorID)
+	categoryIDPtr := nullUUIDToPtr(categoryID)
+	prepTimePtr := nullInt32ToPtr(prepTime)
+	cookTimePtr := nullInt32ToPtr(cookTime)
+	servingsPtr := nullInt32ToPtr(servings)
+	publishedAtPtr := nullTimeToTimePtr(publishedAt)
+	descriptionPtr := nullStringToPtr(description)
+	difficultyPtr := nullStringToPtr(difficulty)
+	featuredImagePtr := nullStringToPtr(featuredImage)
+
+	return &models.Recipe{
+		ID:                dbRecipe.ID,
+		Title:             dbRecipe.Title,
+		Slug:              dbRecipe.Slug,
+		MarkdownContent:   dbRecipe.MarkdownContent,
+		AuthorID:          authorIDPtr,
+		CategoryID:        categoryIDPtr,
+		Description:       descriptionPtr,
+		PrepTimeMinutes:   prepTimePtr,
+		CookTimeMinutes:   cookTimePtr,
+		Servings:          servingsPtr,
+		Difficulty:        difficultyPtr,
+		FeaturedImagePath: featuredImagePtr,
+		IsPublished:       dbRecipe.IsPublished.Bool,
+		CreatedAt:         dbRecipe.CreatedAt.Time,
+		UpdatedAt:         dbRecipe.UpdatedAt.Time,
+		PublishedAt:       publishedAtPtr,
+	}
+}
