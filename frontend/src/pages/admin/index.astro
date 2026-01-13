@@ -1,0 +1,215 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+
+<AdminLayout title="Dashboard">
+	<div class="mb-8">
+		<h1 class="text-2xl font-semibold leading-6 text-gray-900">Dashboard</h1>
+		<p class="mt-2 text-sm text-gray-700">
+			Welcome to your HomeCooking admin panel.
+		</p>
+	</div>
+
+	<!-- Quick Stats -->
+	<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+		<div class="bg-white overflow-hidden shadow rounded-lg">
+			<div class="p-5">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<span class="text-3xl">📖</span>
+					</div>
+					<div class="ml-5 w-0 flex-1">
+						<dl>
+							<dt class="text-sm font-medium text-gray-500 truncate">Total Recipes</dt>
+							<dd class="text-2xl font-semibold text-gray-900" id="total-recipes">-</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white overflow-hidden shadow rounded-lg">
+			<div class="p-5">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<span class="text-3xl">🏷️</span>
+					</div>
+					<div class="ml-5 w-0 flex-1">
+						<dl>
+							<dt class="text-sm font-medium text-gray-500 truncate">Categories</dt>
+							<dd class="text-2xl font-semibold text-gray-900" id="total-categories">-</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white overflow-hidden shadow rounded-lg">
+			<div class="p-5">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<span class="text-3xl">🔖</span>
+					</div>
+					<div class="ml-5 w-0 flex-1">
+						<dl>
+							<dt class="text-sm font-medium text-gray-500 truncate">Tags</dt>
+							<dd class="text-2xl font-semibold text-gray-900" id="total-tags">-</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-white overflow-hidden shadow rounded-lg">
+			<div class="p-5">
+				<div class="flex items-center">
+					<div class="flex-shrink-0">
+						<span class="text-3xl">👥</span>
+					</div>
+					<div class="ml-5 w-0 flex-1">
+						<dl>
+							<dt class="text-sm font-medium text-gray-500 truncate">Groups</dt>
+							<dd class="text-2xl font-semibold text-gray-900" id="total-groups">-</dd>
+						</dl>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Quick Actions -->
+	<div class="bg-white shadow rounded-lg">
+		<div class="px-6 py-5 border-b border-gray-200">
+			<h2 class="text-lg font-medium text-gray-900">Quick Actions</h2>
+		</div>
+		<div class="px-6 py-5">
+			<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+				<a
+					href="/admin/recipes/new"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">➕</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">Create Recipe</p>
+						<p class="text-sm text-gray-500 truncate">Add a new recipe</p>
+					</div>
+				</a>
+
+				<a
+					href="/admin/recipes"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">📖</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">Manage Recipes</p>
+						<p class="text-sm text-gray-500 truncate">View and edit recipes</p>
+					</div>
+				</a>
+
+				<a
+					href="/admin/categories"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">🏷️</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">Categories</p>
+						<p class="text-sm text-gray-500 truncate">Manage categories</p>
+					</div>
+				</a>
+
+				<a
+					href="/admin/tags"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">🔖</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">Tags</p>
+						<p class="text-sm text-gray-500 truncate">Manage tags</p>
+					</div>
+				</a>
+
+				<a
+					href="/admin/groups"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">👥</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">Groups</p>
+						<p class="text-sm text-gray-500 truncate">Manage groups</p>
+					</div>
+				</a>
+
+				<a
+					href="/admin/ai"
+					class="relative rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-orange-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-orange-500"
+				>
+					<div class="flex-shrink-0">
+						<span class="text-2xl">🤖</span>
+					</div>
+					<div class="flex-1 min-w-0">
+						<span class="absolute inset-0" aria-hidden="true"></span>
+						<p class="text-sm font-medium text-gray-900">AI Assistant</p>
+						<p class="text-sm text-gray-500 truncate">Generate recipes with AI</p>
+					</div>
+				</a>
+			</div>
+		</div>
+	</div>
+</AdminLayout>
+
+<script>
+	async function loadStats() {
+		try {
+			// Load recipes count
+			const recipesResponse = await fetch('http://localhost:8080/api/v1/recipes');
+			if (recipesResponse.ok) {
+				const recipesData = await recipesResponse.json();
+				document.getElementById('total-recipes').textContent = recipesData.recipes?.length || 0;
+			}
+
+			// Load categories count
+			const categoriesResponse = await fetch('http://localhost:8080/api/v1/categories');
+			if (categoriesResponse.ok) {
+				const categoriesData = await categoriesResponse.json();
+				document.getElementById('total-categories').textContent = categoriesData.categories?.length || 0;
+			}
+
+			// Load tags count
+			const tagsResponse = await fetch('http://localhost:8080/api/v1/tags');
+			if (tagsResponse.ok) {
+				const tagsData = await tagsResponse.json();
+				document.getElementById('total-tags').textContent = tagsData.tags?.length || 0;
+			}
+
+			// Load groups count
+			const groupsResponse = await fetch('http://localhost:8080/api/v1/groups', {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+				},
+			});
+			if (groupsResponse.ok) {
+				const groupsData = await groupsResponse.json();
+				document.getElementById('total-groups').textContent = groupsData.groups?.length || 0;
+			}
+		} catch (error) {
+			console.error('Error loading stats:', error);
+		}
+	}
+
+	loadStats();
+</script>
