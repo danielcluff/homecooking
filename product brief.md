@@ -1,0 +1,3 @@
+# Product Brief
+
+HomeCooking is a family-friendly recipe management application designed to help households collect, organize, and share their favorite recipes. Users can create and store recipes with rich formatting, add photos, categorize them by type or meal, and group related recipes together for meal planning. The app supports multiple family members with different access levels, allowing everyone to contribute their personal recipe variations without changing the originals. Optional AI features can help digitize recipes from images or enhance recipe descriptions. It's perfect for building a shared family cookbook that can be accessed from any device, with easy sharing options for friends and relatives.
